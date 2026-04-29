@@ -49,6 +49,20 @@ def wait_before_number_answer(settings):
         time.sleep(1)
     print()
 
+def wait_before_radar_answer(settings):
+    delay_min = settings.get("radar_delay_min", 0)
+    delay_max = settings.get("radar_delay_max", 0)
+    delay = random.randint(delay_min, delay_max) if delay_max > delay_min else delay_min
+
+    if delay <= 0:
+        return
+
+    print(f"Waiting {delay} second(s) before answering radar rollcall...")
+    for remaining in range(delay, 0, -1):
+        print(f"\rAnswering in {remaining:>3}s. Press Ctrl+C to cancel.", end="", flush=True)
+        time.sleep(1)
+    print()
+
 def confirm_before_answer(settings):
     if not settings["manual_confirm"]:
         return True
@@ -86,6 +100,7 @@ def handle_rollcalls(data, session, account=None):
                 print("Already answered.")
                 answer_status[i] = True
             elif rollcalls[i]['is_radar']:
+                wait_before_radar_answer(settings)
                 if confirm_before_answer(settings) and send_radar(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:

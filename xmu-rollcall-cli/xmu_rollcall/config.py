@@ -49,11 +49,39 @@ DEFAULT_ACCOUNT = {
     "rollcall_settings": {
         "number_delay_min": 10,
         "number_delay_max": 30,
+        "radar_delay_min": 0,
+        "radar_delay_max": 0,
         "manual_confirm": False
     }
 }
 
 DEFAULT_ROLLCALL_SETTINGS = DEFAULT_ACCOUNT["rollcall_settings"].copy()
+
+def normalize_rollcall_settings(settings):
+    """Normalize rollcall settings and fill defaults."""
+    merged = DEFAULT_ROLLCALL_SETTINGS.copy()
+    merged.update(settings or {})
+
+    int_fields = [
+        ("number_delay_min", DEFAULT_ROLLCALL_SETTINGS["number_delay_min"]),
+        ("number_delay_max", DEFAULT_ROLLCALL_SETTINGS["number_delay_max"]),
+        ("radar_delay_min", DEFAULT_ROLLCALL_SETTINGS["radar_delay_min"]),
+        ("radar_delay_max", DEFAULT_ROLLCALL_SETTINGS["radar_delay_max"]),
+    ]
+
+    for field, fallback in int_fields:
+        try:
+            merged[field] = max(0, int(merged.get(field, fallback)))
+        except (TypeError, ValueError):
+            merged[field] = fallback
+
+    if merged["number_delay_max"] < merged["number_delay_min"]:
+        merged["number_delay_max"] = merged["number_delay_min"]
+    if merged["radar_delay_max"] < merged["radar_delay_min"]:
+        merged["radar_delay_max"] = merged["radar_delay_min"]
+
+    merged["manual_confirm"] = bool(merged.get("manual_confirm", False))
+    return merged
 
 def ensure_config_dir():
     """确保配置目录存在"""
@@ -69,27 +97,34 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 config = json.load(f)
-                # 兼容旧版配置格式
-                if "accounts" not in config and "username" in config:
-                    # 迁移旧配置到新格式
-                    old_username = config.get("username", "")
-                    old_password = config.get("password", "")
-                    if old_username and old_password:
-                        new_config = {
-                            "accounts": [{
-                                "id": 1,
-                                "name": "",
-                                "username": old_username,
-                                "password": old_password,
-                                "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
-                            }],
-                            "current_account_id": 1
-                        }
-                        return new_config
-                    return DEFAULT_CONFIG.copy()
-                return config
-        except Exception:
-            return DEFAULT_CONFIG.copy()
+            if not isinstance(config, dict):
+                raise ValueError("Config root must be a JSON object")
+
+            # 兼容旧版配置格式
+            if "accounts" not in config and "username" in config:
+                # 迁移旧配置到新格式
+                old_username = config.get("username", "")
+                old_password = config.get("password", "")
+                if old_username and old_password:
+                    return {
+                        "accounts": [{
+                            "id": 1,
+                            "name": "",
+                            "username": old_username,
+                            "password": old_password,
+                            "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
+                        }],
+                        "current_account_id": 1
+                    }
+                raise ValueError("Legacy config is missing username/password")
+
+            for acc in config.get("accounts", []):
+                if isinstance(acc, dict):
+                    acc.setdefault("rollcall_settings", DEFAULT_ROLLCALL_SETTINGS.copy())
+
+            return config
+        except Exception as e:
+            raise RuntimeError(f"Failed to load config file {CONFIG_FILE}: {e}")
     return DEFAULT_CONFIG.copy()
 
 def save_config(config):
@@ -143,30 +178,11 @@ def set_current_account(config, account_id):
 
 def get_rollcall_settings(account):
     """Return rollcall settings with defaults filled in."""
-    settings = DEFAULT_ROLLCALL_SETTINGS.copy()
-    settings.update(account.get("rollcall_settings") or {})
-
-    try:
-        settings["number_delay_min"] = max(0, int(settings.get("number_delay_min", 0)))
-    except (TypeError, ValueError):
-        settings["number_delay_min"] = DEFAULT_ROLLCALL_SETTINGS["number_delay_min"]
-
-    try:
-        settings["number_delay_max"] = max(0, int(settings.get("number_delay_max", 0)))
-    except (TypeError, ValueError):
-        settings["number_delay_max"] = DEFAULT_ROLLCALL_SETTINGS["number_delay_max"]
-
-    if settings["number_delay_max"] < settings["number_delay_min"]:
-        settings["number_delay_max"] = settings["number_delay_min"]
-
-    settings["manual_confirm"] = bool(settings.get("manual_confirm", False))
-    return settings
+    return normalize_rollcall_settings(account.get("rollcall_settings") or {})
 
 def set_rollcall_settings(account, settings):
     """Persist normalized rollcall settings on an account."""
-    merged = DEFAULT_ROLLCALL_SETTINGS.copy()
-    merged.update(settings or {})
-    account["rollcall_settings"] = get_rollcall_settings({"rollcall_settings": merged})
+    account["rollcall_settings"] = normalize_rollcall_settings(settings or {})
 
 def get_all_accounts(config):
     """获取所有账号"""
@@ -262,4 +278,3 @@ def perform_account_deletion(cookies_to_delete, cookies_to_rename):
             if os.path.exists(new_path):
                 os.remove(new_path)
             os.rename(old_path, new_path)
-

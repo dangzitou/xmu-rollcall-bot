@@ -96,7 +96,7 @@ xmu --help   # Show help
 ## Notes
 
 - QR code rollcalls are not supported.
-- Number rollcall answers can be delayed and manual confirmation can be enabled from `xmu config`.
+- Number and radar rollcall answers can be delayed, and manual confirmation can be enabled from `xmu config`.
 - The tool depends on XMU/Tronclass API behavior and may break if upstream services change.
 - Use it responsibly and follow your school's rules.
 

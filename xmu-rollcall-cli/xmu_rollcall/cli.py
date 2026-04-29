@@ -43,7 +43,11 @@ def config():
     """配置账号：添加、删除账号"""
     click.echo(f"\n{Colors.BOLD}{Colors.OKCYAN}=== XMU Rollcall Configuration ==={Colors.ENDC}\n")
 
-    current_config = load_config()
+    try:
+        current_config = load_config()
+    except Exception as e:
+        click.echo(f"{Colors.FAIL}Failed to load config: {str(e)}{Colors.ENDC}")
+        sys.exit(1)
 
     def show_accounts():
         """显示账号列表"""
@@ -169,6 +173,7 @@ def config():
 
         click.echo(f"\n{Colors.BOLD}Rollcall safety settings:{Colors.ENDC}")
         click.echo(f"  Number rollcall delay: {settings['number_delay_min']} - {settings['number_delay_max']} seconds")
+        click.echo(f"  Radar rollcall delay: {settings.get('radar_delay_min', 0)} - {settings.get('radar_delay_max', 0)} seconds")
         click.echo(f"  Manual confirm before answering: {'yes' if settings['manual_confirm'] else 'no'}\n")
 
         delay_min = click.prompt(
@@ -181,6 +186,16 @@ def config():
             type=int,
             default=max(settings["number_delay_max"], delay_min)
         )
+        radar_delay_min = click.prompt(
+            f"{Colors.BOLD}Minimum delay before radar rollcall answer (seconds){Colors.ENDC}",
+            type=int,
+            default=settings.get("radar_delay_min", 0)
+        )
+        radar_delay_max = click.prompt(
+            f"{Colors.BOLD}Maximum delay before radar rollcall answer (seconds){Colors.ENDC}",
+            type=int,
+            default=max(settings.get("radar_delay_max", 0), radar_delay_min)
+        )
         manual_confirm = click.confirm(
             f"{Colors.BOLD}Require manual confirmation before answering rollcalls?{Colors.ENDC}",
             default=settings["manual_confirm"]
@@ -189,6 +204,8 @@ def config():
         set_rollcall_settings(account, {
             "number_delay_min": delay_min,
             "number_delay_max": delay_max,
+            "radar_delay_min": radar_delay_min,
+            "radar_delay_max": radar_delay_max,
             "manual_confirm": manual_confirm
         })
         save_config(current_config)
@@ -196,6 +213,7 @@ def config():
 
         click.echo(f"\n{Colors.OKGREEN}Settings saved.{Colors.ENDC}")
         click.echo(f"{Colors.GRAY}Number rollcall delay: {updated['number_delay_min']} - {updated['number_delay_max']} seconds{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Radar rollcall delay: {updated['radar_delay_min']} - {updated['radar_delay_max']} seconds{Colors.ENDC}")
         click.echo(f"{Colors.GRAY}Manual confirm: {'yes' if updated['manual_confirm'] else 'no'}{Colors.ENDC}\n")
 
     while True:
@@ -238,7 +256,11 @@ def config():
 def start():
     """启动签到监控"""
     # 加载配置
-    config_data = load_config()
+    try:
+        config_data = load_config()
+    except Exception as e:
+        click.echo(f"{Colors.FAIL}Failed to load config: {str(e)}{Colors.ENDC}")
+        sys.exit(1)
 
     # 检查配置是否完整
     if not is_config_complete(config_data):
@@ -263,7 +285,11 @@ def start():
 @cli.command()
 def refresh():
     """清除当前账号的登录缓存"""
-    config_data = load_config()
+    try:
+        config_data = load_config()
+    except Exception as e:
+        click.echo(f"{Colors.FAIL}Failed to load config: {str(e)}{Colors.ENDC}")
+        sys.exit(1)
     current_account = get_current_account(config_data)
 
     if not current_account:
@@ -293,7 +319,11 @@ def switch():
     """切换当前使用的账号"""
     click.echo(f"\n{Colors.BOLD}{Colors.OKCYAN}=== Switch Account ==={Colors.ENDC}\n")
 
-    config_data = load_config()
+    try:
+        config_data = load_config()
+    except Exception as e:
+        click.echo(f"{Colors.FAIL}Failed to load config: {str(e)}{Colors.ENDC}")
+        sys.exit(1)
     accounts = get_all_accounts(config_data)
 
     if not accounts:
