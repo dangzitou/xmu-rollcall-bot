@@ -3,12 +3,12 @@
 # XMU Rollcall Bot
 
 <p>
-  <kbd>Python 3.7+</kbd>
-  <kbd>macOS / Linux / Windows</kbd>
-  <kbd>CLI Tool</kbd>
-  <kbd>XMU TronClass</kbd>
-  <kbd>Direct Connection</kbd>
-  <kbd>MIT</kbd>
+  <img src="https://img.shields.io/badge/Python-3.7%2B-blue" />
+  <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-0f766e" />
+  <img src="https://img.shields.io/badge/CLI-Tool-7c3aed" />
+  <img src="https://img.shields.io/badge/XMU-TronClass-ef4444" />
+  <img src="https://img.shields.io/badge/Direct%20connection-On-111827" />
+  <img src="https://img.shields.io/badge/License-MIT-6b7280" />
 </p>
 
 <p><strong>厦门大学数字化教学平台 / Tronclass 签到监控命令行工具</strong></p>
