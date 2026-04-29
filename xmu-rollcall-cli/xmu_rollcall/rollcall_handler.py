@@ -1,10 +1,12 @@
 import time
+import random
+from .config import get_rollcall_settings
 from .verify import send_code, send_radar
 
-def process_rollcalls(data, session):
+def process_rollcalls(data, session, account=None):
     """处理签到数据"""
     data_empty = {'rollcalls': []}
-    result = handle_rollcalls(data, session)
+    result = handle_rollcalls(data, session, account)
     if False in result:
         return data_empty
     else:
@@ -33,10 +35,32 @@ def extract_rollcalls(data):
         rollcall_count = 0
     return rollcall_count, result
 
-def handle_rollcalls(data, session):
+def wait_before_number_answer(settings):
+    delay_min = settings["number_delay_min"]
+    delay_max = settings["number_delay_max"]
+    delay = random.randint(delay_min, delay_max) if delay_max > delay_min else delay_min
+
+    if delay <= 0:
+        return
+
+    print(f"Waiting {delay} second(s) before answering number rollcall...")
+    for remaining in range(delay, 0, -1):
+        print(f"\rAnswering in {remaining:>3}s. Press Ctrl+C to cancel.", end="", flush=True)
+        time.sleep(1)
+    print()
+
+def confirm_before_answer(settings):
+    if not settings["manual_confirm"]:
+        return True
+
+    answer = input("Answer this rollcall now? [y/N]: ").strip().lower()
+    return answer == "y"
+
+def handle_rollcalls(data, session, account=None):
     """处理签到流程"""
     count, rollcalls = extract_rollcalls(data)
     answer_status = [False for _ in range(count)]
+    settings = get_rollcall_settings(account or {})
 
     if count:
         print(time.strftime("%H:%M:%S", time.localtime()), f"New rollcall(s) found!\n")
@@ -53,7 +77,8 @@ def handle_rollcalls(data, session):
             print(f"Rollcall type: {temp_str}\n")
 
             if (rollcalls[i]['status'] == 'absent') & (rollcalls[i]['is_number']) & (not rollcalls[i]['is_radar']):
-                if send_code(session, rollcalls[i]['rollcall_id']):
+                wait_before_number_answer(settings)
+                if confirm_before_answer(settings) and send_code(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
                     print("Answering failed.")
@@ -61,7 +86,7 @@ def handle_rollcalls(data, session):
                 print("Already answered.")
                 answer_status[i] = True
             elif rollcalls[i]['is_radar']:
-                if send_radar(session, rollcalls[i]['rollcall_id']):
+                if confirm_before_answer(settings) and send_radar(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
                     print("Answering failed.")

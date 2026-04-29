@@ -45,8 +45,15 @@ DEFAULT_ACCOUNT = {
     "id": 0,
     "name": "",
     "username": "",
-    "password": ""
+    "password": "",
+    "rollcall_settings": {
+        "number_delay_min": 10,
+        "number_delay_max": 30,
+        "manual_confirm": False
+    }
 }
+
+DEFAULT_ROLLCALL_SETTINGS = DEFAULT_ACCOUNT["rollcall_settings"].copy()
 
 def ensure_config_dir():
     """确保配置目录存在"""
@@ -73,7 +80,8 @@ def load_config():
                                 "id": 1,
                                 "name": "",
                                 "username": old_username,
-                                "password": old_password
+                                "password": old_password,
+                                "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
                             }],
                             "current_account_id": 1
                         }
@@ -104,7 +112,8 @@ def add_account(config, username, password, name):
         "id": account_id,
         "name": name,
         "username": username,
-        "password": password
+        "password": password,
+        "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
     }
     if "accounts" not in config:
         config["accounts"] = []
@@ -131,6 +140,33 @@ def get_current_account(config):
 def set_current_account(config, account_id):
     """设置当前账号"""
     config["current_account_id"] = account_id
+
+def get_rollcall_settings(account):
+    """Return rollcall settings with defaults filled in."""
+    settings = DEFAULT_ROLLCALL_SETTINGS.copy()
+    settings.update(account.get("rollcall_settings") or {})
+
+    try:
+        settings["number_delay_min"] = max(0, int(settings.get("number_delay_min", 0)))
+    except (TypeError, ValueError):
+        settings["number_delay_min"] = DEFAULT_ROLLCALL_SETTINGS["number_delay_min"]
+
+    try:
+        settings["number_delay_max"] = max(0, int(settings.get("number_delay_max", 0)))
+    except (TypeError, ValueError):
+        settings["number_delay_max"] = DEFAULT_ROLLCALL_SETTINGS["number_delay_max"]
+
+    if settings["number_delay_max"] < settings["number_delay_min"]:
+        settings["number_delay_max"] = settings["number_delay_min"]
+
+    settings["manual_confirm"] = bool(settings.get("manual_confirm", False))
+    return settings
+
+def set_rollcall_settings(account, settings):
+    """Persist normalized rollcall settings on an account."""
+    merged = DEFAULT_ROLLCALL_SETTINGS.copy()
+    merged.update(settings or {})
+    account["rollcall_settings"] = get_rollcall_settings({"rollcall_settings": merged})
 
 def get_all_accounts(config):
     """获取所有账号"""

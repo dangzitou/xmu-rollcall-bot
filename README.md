@@ -86,7 +86,7 @@ python -m xmu_rollcall.cli start
 ## Commands
 
 ```bash
-xmu config   # Add/delete accounts and set the current account
+xmu config   # Add/delete accounts and configure rollcall safety settings
 xmu switch   # Switch account
 xmu start    # Start rollcall monitoring
 xmu refresh  # Remove cached login cookies
@@ -96,6 +96,7 @@ xmu --help   # Show help
 ## Notes
 
 - QR code rollcalls are not supported.
+- Number rollcall answers can be delayed and manual confirmation can be enabled from `xmu config`.
 - The tool depends on XMU/Tronclass API behavior and may break if upstream services change.
 - Use it responsibly and follow your school's rules.
 

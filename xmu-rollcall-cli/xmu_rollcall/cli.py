@@ -9,7 +9,8 @@ from xmulogin import xmulogin
 from .config import (
     load_config, save_config, is_config_complete, get_cookies_path,
     add_account, get_all_accounts, get_current_account, set_current_account,
-    get_account_by_id, CONFIG_FILE, delete_account, perform_account_deletion
+    get_account_by_id, CONFIG_FILE, delete_account, perform_account_deletion,
+    get_rollcall_settings, set_rollcall_settings
 )
 from .monitor import start_monitor, base_url, headers
 
@@ -150,17 +151,65 @@ def config():
             click.echo(f"{Colors.FAIL}✗ Account not found.{Colors.ENDC}\n")
 
     # 主循环
+    def configure_rollcall_settings():
+        accounts = get_all_accounts(current_config)
+        if not accounts:
+            click.echo(f"{Colors.WARNING}No accounts configured.{Colors.ENDC}\n")
+            return
+
+        show_accounts()
+        valid_ids = [str(acc.get("id")) for acc in accounts]
+        selected_id = click.prompt(
+            f"{Colors.BOLD}Enter account ID to configure{Colors.ENDC}",
+            type=click.Choice(valid_ids, case_sensitive=False)
+        )
+
+        account = get_account_by_id(current_config, int(selected_id))
+        settings = get_rollcall_settings(account)
+
+        click.echo(f"\n{Colors.BOLD}Rollcall safety settings:{Colors.ENDC}")
+        click.echo(f"  Number rollcall delay: {settings['number_delay_min']} - {settings['number_delay_max']} seconds")
+        click.echo(f"  Manual confirm before answering: {'yes' if settings['manual_confirm'] else 'no'}\n")
+
+        delay_min = click.prompt(
+            f"{Colors.BOLD}Minimum delay before number rollcall answer (seconds){Colors.ENDC}",
+            type=int,
+            default=settings["number_delay_min"]
+        )
+        delay_max = click.prompt(
+            f"{Colors.BOLD}Maximum delay before number rollcall answer (seconds){Colors.ENDC}",
+            type=int,
+            default=max(settings["number_delay_max"], delay_min)
+        )
+        manual_confirm = click.confirm(
+            f"{Colors.BOLD}Require manual confirmation before answering rollcalls?{Colors.ENDC}",
+            default=settings["manual_confirm"]
+        )
+
+        set_rollcall_settings(account, {
+            "number_delay_min": delay_min,
+            "number_delay_max": delay_max,
+            "manual_confirm": manual_confirm
+        })
+        save_config(current_config)
+        updated = get_rollcall_settings(account)
+
+        click.echo(f"\n{Colors.OKGREEN}Settings saved.{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Number rollcall delay: {updated['number_delay_min']} - {updated['number_delay_max']} seconds{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Manual confirm: {'yes' if updated['manual_confirm'] else 'no'}{Colors.ENDC}\n")
+
     while True:
         show_accounts()
 
         click.echo(f"{Colors.BOLD}Choose an action:{Colors.ENDC}")
         click.echo(f"  {Colors.OKCYAN}n{Colors.ENDC} - Add new account")
         click.echo(f"  {Colors.OKCYAN}d{Colors.ENDC} - Delete account")
+        click.echo(f"  {Colors.OKCYAN}s{Colors.ENDC} - Configure rollcall safety settings")
         click.echo(f"  {Colors.OKCYAN}q{Colors.ENDC} - Quit")
 
         action = click.prompt(
             f"\n{Colors.BOLD}Action{Colors.ENDC}",
-            type=click.Choice(['n', 'd', 'q'], case_sensitive=False),
+            type=click.Choice(['n', 'd', 's', 'q'], case_sensitive=False),
             default='q'
         )
 
@@ -170,6 +219,8 @@ def config():
             add_new_account()
         elif action.lower() == 'd':
             delete_existing_account()
+        elif action.lower() == 's':
+            configure_rollcall_settings()
         elif action.lower() == 'q':
             # 退出前显示最终账号列表
             accounts = get_all_accounts(current_config)
