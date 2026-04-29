@@ -1,33 +1,48 @@
+<div align="center">
+
 # XMU Rollcall Bot
 
-> 厦门大学数字化教学平台 / Tronclass 签到监控命令行工具。
->
-> A command-line tool for monitoring and handling XMU Tronclass rollcalls.
+<p>
+  <img src="https://socialify.git.ci/dangzitou/xmu-rollcall-bot/image?font=JetBrains+Mono&forks=1&language=1&name=1&owner=1&pattern=Plus&stargazers=1&theme=Light" alt="XMU Rollcall Bot" />
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Python-3.7%2B-blue" />
+  <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-0f766e" />
+  <img src="https://img.shields.io/badge/CLI-Tool-7c3aed" />
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/XMU-TronClass-ef4444" />
+  <img src="https://img.shields.io/badge/Proxy-Bypass-111827" />
+  <img src="https://img.shields.io/badge/License-MIT-6b7280" />
+</p>
+
+<p><strong>厦门大学数字化教学平台 / Tronclass 签到监控命令行工具</strong></p>
+<p><strong>A command-line tool for monitoring and handling XMU Tronclass rollcalls</strong></p>
+
+</div>
+
+---
 
 ## 简介
 
 XMU Rollcall Bot 是一个 Python CLI 工具，用于登录厦门大学数字化教学平台并持续监控课堂签到。
 
-支持的能力：
+### 标签
 
-- 多账号本地配置与切换
-- 登录状态缓存与刷新
-- 持续轮询签到状态
-- 自动处理数字签到
-- 尝试处理雷达签到
-- 默认绕过系统代理，避免校园平台登录被本机代理配置影响
+<p align="center">
+  <img src="https://img.shields.io/badge/Multi--account-Supported-2563eb" />
+  <img src="https://img.shields.io/badge/Cookie%20cache-Supported-0f766e" />
+  <img src="https://img.shields.io/badge/Polling-1s-7c3aed" />
+  <img src="https://img.shields.io/badge/Number%20rollcall-Auto-ef4444" />
+  <img src="https://img.shields.io/badge/Radar%20rollcall-Supported-f59e0b" />
+  <img src="https://img.shields.io/badge/Direct%20connection-On-111827" />
+</p>
 
 > 本项目仅用于个人学习和自动化便利。使用前请确认符合学校、课程与平台规则，风险自负。
 
-## 环境要求
-
-- Python 3.7+
-- pip
-- 可访问厦门大学相关平台的网络环境
-
 ## 安装
-
-推荐从源码安装当前维护版本：
 
 ```bash
 git clone https://github.com/dangzitou/xmu-rollcall-bot.git
@@ -35,13 +50,13 @@ cd xmu-rollcall-bot
 python -m pip install -e ./xmu-rollcall-cli
 ```
 
-安装完成后可用命令：
+安装完成后：
 
 ```bash
 xmu --help
 ```
 
-如果 `xmu` 没有进入 PATH，也可以使用：
+如果 `xmu` 没有进入 PATH：
 
 ```bash
 python -m xmu_rollcall.cli --help
@@ -106,18 +121,6 @@ xmu --help   # 查看帮助
 - `config.json`：账号列表与当前账号
 - `<account_id>.json`：对应账号的登录 cookie 缓存
 
-自定义配置目录示例：
-
-```bash
-export XMU_ROLLCALL_CONFIG_DIR="$HOME/.xmu_rollcall"
-```
-
-Windows PowerShell：
-
-```powershell
-$env:XMU_ROLLCALL_CONFIG_DIR="$HOME\.xmu_rollcall"
-```
-
 ## 限制
 
 - 暂不支持二维码签到
@@ -128,11 +131,16 @@ $env:XMU_ROLLCALL_CONFIG_DIR="$HOME\.xmu_rollcall"
 
 XMU Rollcall Bot is a Python command-line tool for logging into Xiamen University's Tronclass platform and monitoring rollcalls.
 
-### Requirements
+### Tags
 
-- Python 3.7+
-- pip
-- Network access to XMU campus services
+<p align="center">
+  <img src="https://img.shields.io/badge/Multi--account-Supported-2563eb" />
+  <img src="https://img.shields.io/badge/Cookie%20cache-Supported-0f766e" />
+  <img src="https://img.shields.io/badge/Polling-1s-7c3aed" />
+  <img src="https://img.shields.io/badge/Number%20rollcall-Auto-ef4444" />
+  <img src="https://img.shields.io/badge/Radar%20rollcall-Supported-f59e0b" />
+  <img src="https://img.shields.io/badge/Direct%20connection-On-111827" />
+</p>
 
 ### Installation
 
