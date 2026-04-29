@@ -25,6 +25,16 @@
 
 ---
 
+## 免责声明 / Disclaimer
+
+本项目仅供学习、研究和个人自动化便利使用。使用者应自行确认并遵守所在学校、课程、平台与相关法律法规的要求。
+
+作者及维护者不对因使用本项目导致的任何账号风险、数据异常、平台限制或其他后果承担责任。
+
+This project is provided for learning, research, and personal automation convenience only. Users are responsible for complying with their school's rules, course policies, platform terms, and applicable laws.
+
+The author and maintainers assume no liability for account risks, data issues, platform restrictions, or any other consequences arising from use of this project.
+
 ## 简介
 
 XMU Rollcall Bot 是一个 Python CLI 工具，用于登录厦门大学数字化教学平台并持续监控课堂签到。
