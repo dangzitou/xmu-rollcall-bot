@@ -39,17 +39,6 @@ The author and maintainers assume no liability for account risks, data issues, p
 
 XMU Rollcall Bot 是一个 Python CLI 工具，用于登录厦门大学数字化教学平台并持续监控课堂签到。
 
-### 标签
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Multi--account-Supported-2563eb" />
-  <img src="https://img.shields.io/badge/Cookie%20cache-Supported-0f766e" />
-  <img src="https://img.shields.io/badge/Polling-1s-7c3aed" />
-  <img src="https://img.shields.io/badge/Number%20rollcall-Auto-ef4444" />
-  <img src="https://img.shields.io/badge/Radar%20rollcall-Supported-f59e0b" />
-  <img src="https://img.shields.io/badge/Direct%20connection-On-111827" />
-</p>
-
 > 本项目仅用于个人学习和自动化便利。使用前请确认符合学校、课程与平台规则，风险自负。
 
 ## 安装
