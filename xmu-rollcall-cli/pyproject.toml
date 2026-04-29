@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "XMU Rollcall Bot CLI - Automated rollcall monitoring and answering for Xiamen University Tronclass"
 readme = "README.md"
 requires-python = ">=3.7"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "KrsMt", email = "krsmt0113@gmail.com"}
 ]

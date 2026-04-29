@@ -1,7 +1,11 @@
 import click
 import sys
-from xmulogin import xmulogin
 from . import __version__
+from .proxy_guard import disable_system_proxies
+
+disable_system_proxies()
+
+from xmulogin import xmulogin
 from .config import (
     load_config, save_config, is_config_complete, get_cookies_path,
     add_account, get_all_accounts, get_current_account, set_current_account,
