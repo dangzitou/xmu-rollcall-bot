@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 # XMU Rollcall Bot
 
@@ -11,30 +11,32 @@
   <img src="https://img.shields.io/badge/License-MIT-6b7280" />
 </p>
 
-<p><strong>厦门大学数字化教学平台 / Tronclass 签到监控命令行工具</strong></p>
+<p><strong>鍘﹂棬澶у鏁板瓧鍖栨暀瀛﹀钩鍙?/ Tronclass 绛惧埌鐩戞帶鍛戒护琛屽伐鍏?/strong></p>
 <p><strong>A command-line tool for monitoring and handling XMU Tronclass rollcalls</strong></p>
 
 </div>
 
 ---
 
-## 免责声明 / Disclaimer
+<p align="center">
+  <a href="#chinese">中文</a> | <a href="#english">English</a>
+</p>
 
-本项目仅供学习、研究和个人自动化便利使用。使用者应自行确认并遵守所在学校、课程、平台与相关法律法规的要求。
+---
 
-作者及维护者不对因使用本项目导致的任何账号风险、数据异常、平台限制或其他后果承担责任。
+## 鍏嶈矗澹版槑 / Disclaimer
 
+鏈」鐩粎渚涘涔犮€佺爺绌跺拰涓汉鑷姩鍖栦究鍒╀娇鐢ㄣ€備娇鐢ㄨ€呭簲鑷纭骞堕伒瀹堟墍鍦ㄥ鏍°€佽绋嬨€佸钩鍙颁笌鐩稿叧娉曞緥娉曡鐨勮姹傘€?
+浣滆€呭強缁存姢鑰呬笉瀵瑰洜浣跨敤鏈」鐩鑷寸殑浠讳綍璐﹀彿椋庨櫓銆佹暟鎹紓甯搞€佸钩鍙伴檺鍒舵垨鍏朵粬鍚庢灉鎵挎媴璐ｄ换銆?
 This project is provided for learning, research, and personal automation convenience only. Users are responsible for complying with their school's rules, course policies, platform terms, and applicable laws.
 
 The author and maintainers assume no liability for account risks, data issues, platform restrictions, or any other consequences arising from use of this project.
 
-## 简介
-
-XMU Rollcall Bot 是一个 Python CLI 工具，用于登录厦门大学数字化教学平台并持续监控课堂签到。
-
-> 本项目仅用于个人学习和自动化便利。使用前请确认符合学校、课程与平台规则，风险自负。
-
-## 安装
+<a id="chinese"></a>
+## 绠€浠?
+XMU Rollcall Bot 鏄竴涓?Python CLI 宸ュ叿锛岀敤浜庣櫥褰曞帵闂ㄥぇ瀛︽暟瀛楀寲鏁欏骞冲彴骞舵寔缁洃鎺ц鍫傜鍒般€?
+> 鏈」鐩粎鐢ㄤ簬涓汉瀛︿範鍜岃嚜鍔ㄥ寲渚垮埄銆備娇鐢ㄥ墠璇风‘璁ょ鍚堝鏍°€佽绋嬩笌骞冲彴瑙勫垯锛岄闄╄嚜璐熴€?
+## 瀹夎
 
 ```bash
 git clone https://github.com/dangzitou/xmu-rollcall-bot.git
@@ -42,19 +44,18 @@ cd xmu-rollcall-bot
 python -m pip install -e ./xmu-rollcall-cli
 ```
 
-安装完成后：
+瀹夎瀹屾垚鍚庯細
 
 ```bash
 xmu --help
 ```
 
-如果 `xmu` 没有进入 PATH：
-
+濡傛灉 `xmu` 娌℃湁杩涘叆 PATH锛?
 ```bash
 python -m xmu_rollcall.cli --help
 ```
 
-## 启动方式
+## 鍚姩鏂瑰紡
 
 ### macOS / Linux
 
@@ -66,8 +67,7 @@ xmu config
 xmu start
 ```
 
-如果系统找不到 `xmu`：
-
+濡傛灉绯荤粺鎵句笉鍒?`xmu`锛?
 ```bash
 python3 -m xmu_rollcall.cli config
 python3 -m xmu_rollcall.cli start
@@ -83,42 +83,37 @@ xmu config
 xmu start
 ```
 
-如果系统找不到 `xmu`：
-
+濡傛灉绯荤粺鎵句笉鍒?`xmu`锛?
 ```powershell
 python -m xmu_rollcall.cli config
 python -m xmu_rollcall.cli start
 ```
 
-## 常用命令
+## 甯哥敤鍛戒护
 
 ```bash
-xmu config   # 添加、删除账号，并设置当前账号
-xmu switch   # 切换当前账号
-xmu start    # 启动签到监控
-xmu refresh  # 清除当前账号登录缓存
-xmu --help   # 查看帮助
+xmu config   # 娣诲姞銆佸垹闄よ处鍙凤紝骞惰缃綋鍓嶈处鍙?xmu switch   # 鍒囨崲褰撳墠璐﹀彿
+xmu start    # 鍚姩绛惧埌鐩戞帶
+xmu refresh  # 娓呴櫎褰撳墠璐﹀彿鐧诲綍缂撳瓨
+xmu --help   # 鏌ョ湅甯姪
 ```
 
-## 配置文件
+## 閰嶇疆鏂囦欢
 
-本地配置默认保存在 `.xmu_rollcall` 目录中，优先级如下：
+鏈湴閰嶇疆榛樿淇濆瓨鍦?`.xmu_rollcall` 鐩綍涓紝浼樺厛绾у涓嬶細
 
-1. `XMU_ROLLCALL_CONFIG_DIR` 指定的目录
-2. 用户主目录下的 `~/.xmu_rollcall`
-3. 当前工作目录下的 `./.xmu_rollcall`
+1. `XMU_ROLLCALL_CONFIG_DIR` 鎸囧畾鐨勭洰褰?2. 鐢ㄦ埛涓荤洰褰曚笅鐨?`~/.xmu_rollcall`
+3. 褰撳墠宸ヤ綔鐩綍涓嬬殑 `./.xmu_rollcall`
 
-主要文件：
+涓昏鏂囦欢锛?
+- `config.json`锛氳处鍙峰垪琛ㄤ笌褰撳墠璐﹀彿
+- `<account_id>.json`锛氬搴旇处鍙风殑鐧诲綍 cookie 缂撳瓨
 
-- `config.json`：账号列表与当前账号
-- `<account_id>.json`：对应账号的登录 cookie 缓存
+## 闄愬埗
 
-## 限制
-
-- 暂不支持二维码签到
-- 平台接口变化可能导致功能失效
-- 雷达签到依赖平台返回数据，不能保证所有场景可用
-
+- 鏆備笉鏀寔浜岀淮鐮佺鍒?- 骞冲彴鎺ュ彛鍙樺寲鍙兘瀵艰嚧鍔熻兘澶辨晥
+- 闆疯揪绛惧埌渚濊禆骞冲彴杩斿洖鏁版嵁锛屼笉鑳戒繚璇佹墍鏈夊満鏅彲鐢?
+<a id="english"></a>
 ## English
 
 XMU Rollcall Bot is a Python command-line tool for logging into Xiamen University's Tronclass platform and monitoring rollcalls.
