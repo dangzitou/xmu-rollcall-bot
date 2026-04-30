@@ -25,7 +25,7 @@ The author and maintainers assume no liability for account risks, data issues, p
 
 ## Overview
 
-XMU Rollcall Bot is a Python CLI tool for logging into Xiamen University's Tronclass platform and monitoring rollcalls.
+XMU Rollcall Bot is a Python CLI tool for logging into Xiamen University's Tronclass platform, monitoring rollcalls, and optionally forwarding new-rollcall alerts through a decoupled Hermes notification helper.
 
 ## Installation
 
@@ -86,12 +86,79 @@ python -m xmu_rollcall.cli start
 ## Commands
 
 ```bash
-xmu config   # Add/delete accounts and configure rollcall safety settings
+xmu config   # Add/delete accounts and configure rollcall safety settings or notification delivery
 xmu switch   # Switch account
 xmu start    # Start rollcall monitoring
 xmu refresh  # Remove cached login cookies
 xmu --help   # Show help
 ```
+
+## Notification Architecture
+
+New-rollcall alerts are implemented in a deployment-friendly, decoupled way:
+
+1. `xmu_rollcall.rollcall_handler` detects a new rollcall.
+2. `xmu_rollcall.events.notify_new_rollcall()` renders a notification payload.
+3. `scripts/send_rollcall_notification.py` bridges into Hermes.
+4. Hermes `send_message_tool` delivers to the configured chat target.
+
+This separation keeps platform-specific delivery code out of the core monitoring loop and keeps notification targets configurable per deployment.
+
+## Reproducible Notification Setup
+
+### 1. Configure account-level notification behavior
+
+Run:
+
+```bash
+xmu config
+```
+
+Choose `m` to configure notification delivery for an account, then set:
+
+- notifications enabled = yes
+- notify on new rollcall = yes
+- target mode = `env`
+- target value = `XMU_ROLLCALL_NOTIFY_TARGET`
+
+Using `env` mode is recommended because it keeps `config.json` portable across environments.
+
+### 2. Set the runtime delivery target
+
+Example for QQBot private delivery:
+
+```bash
+export XMU_ROLLCALL_NOTIFY_TARGET="qqbot:YOUR_QQ_OPENID"
+```
+
+### 3. Start the monitor in the same environment
+
+```bash
+xmu start
+```
+
+If a new rollcall appears, the CLI will attempt to send a message immediately.
+
+## Helper Script Contract
+
+The helper accepts one JSON argument:
+
+```bash
+python scripts/send_rollcall_notification.py '{"target":"qqbot:YOUR_QQ_OPENID","message":"hello"}'
+```
+
+Current implementation notes:
+
+- `qqbot:<openid>` is normalized into Hermes' QQBot home-channel flow.
+- The rollcall CLI itself does not need to know QQBot REST endpoint details.
+- Failures in notification delivery are reported locally without crashing the monitor loop.
+
+## Deployment Notes
+
+- `scripts/send_rollcall_notification.py` currently expects a local Hermes checkout at `~/.hermes/hermes-agent` by default.
+- Override the Hermes checkout path with `XMU_ROLLCALL_HERMES_REPO` if your deployment stores Hermes elsewhere.
+- Hermes must already be configured for the target platform before you start the rollcall monitor.
+- For reproducible deployments, avoid baking target chat IDs directly into repo-tracked config files.
 
 ## Notes
 

@@ -10,7 +10,7 @@ from .proxy_guard import disable_system_proxies
 disable_system_proxies()
 
 from xmulogin import xmulogin
-from .utils import clear_screen, save_session, load_session, verify_session
+from .utils import clear_screen, save_session, load_session, verify_session, supports_interactive_terminal
 from .rollcall_handler import process_rollcalls
 from .config import get_cookies_path
 
@@ -50,6 +50,7 @@ CYAN_TEXT = f"{Colors.OKCYAN}"
 GREEN_TEXT = f"{Colors.OKGREEN}"
 YELLOW_TEXT = f"{Colors.WARNING}"
 END = Colors.ENDC
+INTERACTIVE_TTY = supports_interactive_terminal()
 
 def get_terminal_width():
     """获取终端宽度"""
@@ -82,15 +83,25 @@ def print_banner():
     title1 = "XMU Rollcall Bot CLI"
     title2 = f"Version {__version__}"
 
-    print(f"{Colors.OKCYAN}{line}{Colors.ENDC}")
-    print(center_text(f"{Colors.BOLD}{title1}{Colors.ENDC}"))
-    print(center_text(f"{Colors.GRAY}{title2}{Colors.ENDC}"))
-    print(f"{Colors.OKCYAN}{line}{Colors.ENDC}")
+    if INTERACTIVE_TTY:
+        print(f"{Colors.OKCYAN}{line}{Colors.ENDC}")
+        print(center_text(f"{Colors.BOLD}{title1}{Colors.ENDC}"))
+        print(center_text(f"{Colors.GRAY}{title2}{Colors.ENDC}"))
+        print(f"{Colors.OKCYAN}{line}{Colors.ENDC}")
+    else:
+        print(line)
+        print(center_text(title1))
+        print(center_text(title2))
+        print(line)
 
 def print_separator(char="-"):
     """打印分隔线"""
     width = get_terminal_width()
-    print(f"{Colors.GRAY}{char * width}{Colors.ENDC}")
+    line = char * width
+    if INTERACTIVE_TTY:
+        print(f"{Colors.GRAY}{line}{Colors.ENDC}")
+    else:
+        print(line)
 
 def format_time(seconds):
     """格式化时间显示"""
@@ -177,6 +188,8 @@ FOOTER_LINE = 20
 
 def update_status_line(line_num, label, value, color):
     """更新指定行的状态信息，不清屏"""
+    if not INTERACTIVE_TTY:
+        return
     sys.stdout.write("\033[?25l")
     sys.stdout.write("\033[s")
     sys.stdout.write(f"\033[{line_num};0H")
@@ -188,6 +201,8 @@ def update_status_line(line_num, label, value, color):
 
 def update_footer_text():
     """更新底部彩色文字，不清屏"""
+    if not INTERACTIVE_TTY:
+        return
     text = "XMU-Rollcall-Bot @ KrsMt"
     colored = get_colorful_text(text, 0)
     width = get_terminal_width()

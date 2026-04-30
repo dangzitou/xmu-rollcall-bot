@@ -2,6 +2,14 @@ import os
 import json
 import requests
 
+
+def supports_interactive_terminal() -> bool:
+    """Return True when stdout/stderr are attached to a real terminal."""
+    try:
+        return bool(os.environ.get("TERM")) and os.isatty(1) and os.isatty(2)
+    except Exception:
+        return False
+
 base_url = "https://lnt.xmu.edu.cn"
 headers = {
     "User-Agent": (
@@ -13,6 +21,8 @@ headers = {
 
 def clear_screen():
     """清屏"""
+    if not supports_interactive_terminal():
+        return
     if os.name == 'nt':
         os.system('cls')
     else:

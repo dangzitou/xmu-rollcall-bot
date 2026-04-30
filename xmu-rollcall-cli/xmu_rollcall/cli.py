@@ -10,8 +10,10 @@ from .config import (
     load_config, save_config, is_config_complete, get_cookies_path,
     add_account, get_all_accounts, get_current_account, set_current_account,
     get_account_by_id, CONFIG_FILE, delete_account, perform_account_deletion,
-    get_rollcall_settings, set_rollcall_settings
+    get_rollcall_settings, set_rollcall_settings, get_notification_settings,
+    set_notification_settings,
 )
+from .notifications_config import DEFAULT_NOTIFICATION_TARGET_ENV
 from .monitor import start_monitor, base_url, headers
 
 # ANSI Color codes
@@ -37,8 +39,9 @@ def cli(ctx):
         click.echo(f"  xmu start     Start monitoring rollcalls")
         click.echo(f"  xmu refresh   Refresh the login status")
         click.echo(f"  xmu --help    Show this message")
+        click.echo(f"\nNotification target defaults to env var: {DEFAULT_NOTIFICATION_TARGET_ENV}")
 
-@cli.command()
+@cli.command(help="配置账号、签到安全设置与通知投递")
 def config():
     """配置账号：添加、删除账号"""
     click.echo(f"\n{Colors.BOLD}{Colors.OKCYAN}=== XMU Rollcall Configuration ==={Colors.ENDC}\n")
@@ -216,6 +219,68 @@ def config():
         click.echo(f"{Colors.GRAY}Radar rollcall delay: {updated['radar_delay_min']} - {updated['radar_delay_max']} seconds{Colors.ENDC}")
         click.echo(f"{Colors.GRAY}Manual confirm: {'yes' if updated['manual_confirm'] else 'no'}{Colors.ENDC}\n")
 
+    def configure_notifications():
+        accounts = get_all_accounts(current_config)
+        if not accounts:
+            click.echo(f"{Colors.WARNING}No accounts configured.{Colors.ENDC}\n")
+            return
+
+        show_accounts()
+        valid_ids = [str(acc.get("id")) for acc in accounts]
+        selected_id = click.prompt(
+            f"{Colors.BOLD}Enter account ID to configure notifications for{Colors.ENDC}",
+            type=click.Choice(valid_ids, case_sensitive=False)
+        )
+
+        account = get_account_by_id(current_config, int(selected_id))
+        settings = get_notification_settings(account)
+        target = settings["target"]
+
+        click.echo(f"\n{Colors.BOLD}Notification settings:{Colors.ENDC}")
+        click.echo(f"  Enabled: {'yes' if settings['enabled'] else 'no'}")
+        click.echo(f"  Notify on new rollcall: {'yes' if settings['notify_on_new_rollcall'] else 'no'}")
+        click.echo(f"  Target mode: {target['type']}")
+        click.echo(f"  Target value: {target['value']}\n")
+
+        enabled = click.confirm(
+            f"{Colors.BOLD}Enable notifications for this account?{Colors.ENDC}",
+            default=settings["enabled"]
+        )
+        notify_on_new_rollcall = click.confirm(
+            f"{Colors.BOLD}Send a message as soon as a new rollcall is detected?{Colors.ENDC}",
+            default=settings["notify_on_new_rollcall"]
+        )
+        target_mode = click.prompt(
+            f"{Colors.BOLD}Notification target mode (env/fixed){Colors.ENDC}",
+            type=click.Choice(['env', 'fixed'], case_sensitive=False),
+            default=target["type"]
+        ).lower()
+        default_target_value = target["value"] if target_mode == target["type"] else (
+            DEFAULT_NOTIFICATION_TARGET_ENV if target_mode == 'env' else ''
+        )
+        target_value = click.prompt(
+            f"{Colors.BOLD}Notification target {'environment variable name' if target_mode == 'env' else 'direct target value'}{Colors.ENDC}",
+            default=default_target_value,
+            show_default=True
+        )
+
+        set_notification_settings(account, {
+            "enabled": enabled,
+            "notify_on_new_rollcall": notify_on_new_rollcall,
+            "target": {
+                "type": target_mode,
+                "value": target_value,
+            },
+        })
+        save_config(current_config)
+        updated = get_notification_settings(account)
+
+        click.echo(f"\n{Colors.OKGREEN}Notification settings saved.{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Enabled: {'yes' if updated['enabled'] else 'no'}{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Notify on new rollcall: {'yes' if updated['notify_on_new_rollcall'] else 'no'}{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Target mode: {updated['target']['type']}{Colors.ENDC}")
+        click.echo(f"{Colors.GRAY}Target value: {updated['target']['value']}{Colors.ENDC}\n")
+
     while True:
         show_accounts()
 
@@ -223,11 +288,12 @@ def config():
         click.echo(f"  {Colors.OKCYAN}n{Colors.ENDC} - Add new account")
         click.echo(f"  {Colors.OKCYAN}d{Colors.ENDC} - Delete account")
         click.echo(f"  {Colors.OKCYAN}s{Colors.ENDC} - Configure rollcall safety settings")
+        click.echo(f"  {Colors.OKCYAN}m{Colors.ENDC} - Configure notification delivery")
         click.echo(f"  {Colors.OKCYAN}q{Colors.ENDC} - Quit")
 
         action = click.prompt(
             f"\n{Colors.BOLD}Action{Colors.ENDC}",
-            type=click.Choice(['n', 'd', 's', 'q'], case_sensitive=False),
+            type=click.Choice(['n', 'd', 's', 'm', 'q'], case_sensitive=False),
             default='q'
         )
 
@@ -239,6 +305,8 @@ def config():
             delete_existing_account()
         elif action.lower() == 's':
             configure_rollcall_settings()
+        elif action.lower() == 'm':
+            configure_notifications()
         elif action.lower() == 'q':
             # 退出前显示最终账号列表
             accounts = get_all_accounts(current_config)

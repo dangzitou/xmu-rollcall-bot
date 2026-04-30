@@ -1,6 +1,7 @@
 import time
 import random
 from .config import get_rollcall_settings
+from .events import notify_new_rollcall
 from .verify import send_code, send_radar
 
 def process_rollcalls(data, session, account=None):
@@ -81,6 +82,11 @@ def handle_rollcalls(data, session, account=None):
         for i in range(count):
             print(f"{i+1} of {count}:")
             print(f"Course name: {rollcalls[i]['course_title']}, rollcall created by {rollcalls[i]['department_name']} {rollcalls[i]['created_by_name']}.")
+
+            try:
+                notify_new_rollcall(account or {}, rollcalls[i])
+            except Exception as exc:
+                print(f"Notification failed: {exc}")
 
             if rollcalls[i]['is_radar']:
                 temp_str = "Radar rollcall"

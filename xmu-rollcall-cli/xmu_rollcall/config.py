@@ -2,6 +2,8 @@ import os
 import json
 from pathlib import Path
 
+from .notifications_config import default_notifications_config, normalize_notifications_config
+
 def get_config_dir():
     """
     获取配置目录路径，支持沙盒环境（如 a-Shell）
@@ -112,7 +114,8 @@ def load_config():
                             "name": "",
                             "username": old_username,
                             "password": old_password,
-                            "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
+                            "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy(),
+                            "notifications": default_notifications_config(),
                         }],
                         "current_account_id": 1
                     }
@@ -121,6 +124,7 @@ def load_config():
             for acc in config.get("accounts", []):
                 if isinstance(acc, dict):
                     acc.setdefault("rollcall_settings", DEFAULT_ROLLCALL_SETTINGS.copy())
+                    acc["notifications"] = normalize_notifications_config(acc.get("notifications"))
 
             return config
         except Exception as e:
@@ -148,7 +152,8 @@ def add_account(config, username, password, name):
         "name": name,
         "username": username,
         "password": password,
-        "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy()
+        "rollcall_settings": DEFAULT_ROLLCALL_SETTINGS.copy(),
+        "notifications": default_notifications_config(),
     }
     if "accounts" not in config:
         config["accounts"] = []
@@ -183,6 +188,17 @@ def get_rollcall_settings(account):
 def set_rollcall_settings(account, settings):
     """Persist normalized rollcall settings on an account."""
     account["rollcall_settings"] = normalize_rollcall_settings(settings or {})
+
+
+def get_notification_settings(account):
+    """Return notification settings with defaults filled in."""
+    return normalize_notifications_config(account.get("notifications") or {})
+
+
+def set_notification_settings(account, settings):
+    """Persist normalized notification settings on an account."""
+    account["notifications"] = normalize_notifications_config(settings or {})
+
 
 def get_all_accounts(config):
     """获取所有账号"""
