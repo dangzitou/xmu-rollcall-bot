@@ -13,6 +13,12 @@
 
 <p><strong>A command-line tool for monitoring and handling XMU Tronclass rollcalls</strong></p>
 
+<p>
+  <strong>🇺🇸 English</strong>
+  ·
+  <a href="./README.zh-CN.md">🇨🇳 简体中文</a>
+</p>
+
 </div>
 
 ---
