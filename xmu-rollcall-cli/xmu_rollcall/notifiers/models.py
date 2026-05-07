@@ -43,18 +43,23 @@ class NotificationMessage:
         course = rollcall.get("course_title") or "Unknown course"
         rollcall_id = rollcall.get("rollcall_id", "?")
         status = rollcall.get("status") or "unknown"
+        number_code = rollcall.get("number_code")
+
+        lines = [
+            f"Account: {account_display}",
+            f"Course: {course}",
+            f"Teacher: {department} {teacher}",
+            f"Type: {describe_rollcall_type(rollcall)}",
+            f"Status: {status}",
+            f"Rollcall ID: {rollcall_id}",
+        ]
+        if number_code:
+            lines.append(f"签到码: {number_code}")
+        lines.append(f"Detected at: {timestamp}")
 
         return cls(
             title="[XMU Rollcall Alert]",
-            lines=(
-                f"Account: {account_display}",
-                f"Course: {course}",
-                f"Teacher: {department} {teacher}",
-                f"Type: {describe_rollcall_type(rollcall)}",
-                f"Status: {status}",
-                f"Rollcall ID: {rollcall_id}",
-                f"Detected at: {timestamp}",
-            ),
+            lines=tuple(lines),
         )
 
     def render_text(self) -> str:

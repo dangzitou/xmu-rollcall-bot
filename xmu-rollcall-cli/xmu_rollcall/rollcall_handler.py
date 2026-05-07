@@ -1,7 +1,6 @@
 import time
 import random
 from .config import get_rollcall_settings
-from .events import notify_new_rollcall
 from .verify import send_code, send_radar
 
 def process_rollcalls(data, session, account=None):
@@ -83,11 +82,6 @@ def handle_rollcalls(data, session, account=None):
             print(f"{i+1} of {count}:")
             print(f"Course name: {rollcalls[i]['course_title']}, rollcall created by {rollcalls[i]['department_name']} {rollcalls[i]['created_by_name']}.")
 
-            try:
-                notify_new_rollcall(account or {}, rollcalls[i])
-            except Exception as exc:
-                print(f"Notification failed: {exc}")
-
             if rollcalls[i]['is_radar']:
                 temp_str = "Radar rollcall"
             elif rollcalls[i]['is_number']:
@@ -98,7 +92,7 @@ def handle_rollcalls(data, session, account=None):
 
             if (rollcalls[i]['status'] == 'absent') & (rollcalls[i]['is_number']) & (not rollcalls[i]['is_radar']):
                 wait_before_number_answer(settings)
-                if confirm_before_answer(settings) and send_code(session, rollcalls[i]['rollcall_id']):
+                if send_code(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
                     print("Answering failed.")
@@ -107,13 +101,13 @@ def handle_rollcalls(data, session, account=None):
                 answer_status[i] = True
             elif rollcalls[i]['is_radar']:
                 wait_before_radar_answer(settings)
-                if confirm_before_answer(settings) and send_radar(session, rollcalls[i]['rollcall_id']):
+                if send_radar(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
                     print("Answering failed.")
             else:
-                # TODO: qrcode rollcall
-                print("Answering failed. QRcode rollcall not supported yet.")
+                # QRcode rollcall - 无法自动处理，仅通知
+                print("QRcode rollcall - please scan the QR code manually.")
 
     return answer_status
 
