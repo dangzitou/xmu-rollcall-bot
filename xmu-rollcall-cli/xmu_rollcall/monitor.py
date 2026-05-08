@@ -185,6 +185,26 @@ TIME_LINE = 10
 RUNTIME_LINE = 11
 QUERY_LINE = 12
 FOOTER_LINE = 20
+DAYTIME_HEARTBEAT_INTERVAL = 300
+NIGHTTIME_HEARTBEAT_INTERVAL = 3600
+
+
+def get_heartbeat_interval_for_hour_minute(hour, minute):
+    """根据时段返回心跳间隔（秒）。白天 07:00-18:29 为 5 分钟，其余为 1 小时。"""
+    if (hour > 7 or (hour == 7 and minute >= 0)) and (hour < 18 or (hour == 18 and minute < 30)):
+        return DAYTIME_HEARTBEAT_INTERVAL
+    return NIGHTTIME_HEARTBEAT_INTERVAL
+
+
+def log_heartbeat(local_time, running_time, query_count):
+    """在非交互模式下输出周期性心跳日志。"""
+    if INTERACTIVE_TTY:
+        return
+    print(
+        f"[HEARTBEAT] Current Time: {local_time} | "
+        f"Running Time: {running_time} | Query Count: {query_count}",
+        flush=True,
+    )
 
 def update_status_line(line_num, label, value, color):
     """更新指定行的状态信息，不清屏"""
@@ -287,6 +307,7 @@ def start_monitor(account):
 
     footer_initialized = False
     _last_query_time = 0
+    last_heartbeat_at = start_time
 
     try:
         while True:
@@ -314,6 +335,14 @@ def start_monitor(account):
                     update_status_line(TIME_LINE, "Current Time:", local_time, Colors.OKCYAN)
                     update_status_line(RUNTIME_LINE, "Running Time:", running_time, Colors.OKGREEN)
                     update_status_line(QUERY_LINE, "Query Count: ", str(query_count), Colors.WARNING)
+
+                    heartbeat_interval = get_heartbeat_interval_for_hour_minute(
+                        time.localtime(current_time).tm_hour,
+                        time.localtime(current_time).tm_min,
+                    )
+                    if current_time - last_heartbeat_at >= heartbeat_interval:
+                        log_heartbeat(local_time, running_time, query_count)
+                        last_heartbeat_at = current_time
 
                     if temp_data != data:
                         temp_data = data

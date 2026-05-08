@@ -164,10 +164,7 @@ try:
                 try:
                     from xmu_rollcall.rollcall_handler import process_rollcalls
                     temp_data = process_rollcalls(temp_data, session, acc)
-                    answer_time = time.time()
-                    elapsed_sec = int(answer_time - detect_time)
-                    answer_ts = time.strftime('%H:%M:%S', time.localtime(answer_time))
-                    
+
                     # Send QQ notification
                     for rc in temp_data.get('rollcalls', []):
                         cname = rc.get('course_title', rc.get('course_name', '未知课程'))
@@ -180,29 +177,52 @@ try:
                         else:
                             rtype = 'QRcode rollcall'
                         status = rc.get('status', '已处理')
-                        # Fetch number_code for number rollcalls
-                        number_code = rc.get('number_code')
-                        if rc.get('is_number') and not rc.get('is_radar') and not number_code:
-                            try:
-                                from xmu_rollcall.verify import find_number_code
-                                code_url = f"https://lnt.xmu.edu.cn/api/rollcall/{rc['rollcall_id']}/student_rollcalls"
-                                code_resp = session.get(code_url, timeout=10)
-                                if code_resp.status_code == 200:
-                                    number_code = find_number_code(code_resp.json())
-                            except Exception:
-                                pass
+
+                        # Fetch student_rollcalls for number_code + answer time
+                        from datetime import datetime, timezone, timedelta
+                        number_code = None
+                        student_answered_at = None
+                        try:
+                            from xmu_rollcall.verify import find_number_code
+                            code_url = f"https://lnt.xmu.edu.cn/api/rollcall/{rc['rollcall_id']}/student_rollcalls"
+                            code_resp = session.get(code_url, timeout=10)
+                            if code_resp.status_code == 200:
+                                code_data = code_resp.json()
+                                number_code = find_number_code(code_data)
+                                # Find current student's answer time
+                                for sc in code_data.get('student_rollcalls', []):
+                                    if sc.get('user_no') == acc.get('username'):
+                                        student_answered_at = sc.get('updated_at')
+                                        break
+                        except Exception:
+                            pass
 
                         # Parse teacher rollcall time
                         rollcall_time_str = rc.get('rollcall_time', '')
                         teacher_time_display = ''
+                        rollcall_dt_bj = None
                         if rollcall_time_str:
                             try:
-                                from datetime import datetime, timezone, timedelta
                                 dt_utc = datetime.fromisoformat(rollcall_time_str.replace('Z', '+00:00'))
-                                dt_bj = dt_utc.astimezone(timezone(timedelta(hours=8)))
-                                teacher_time_display = dt_bj.strftime('%H:%M:%S')
+                                rollcall_dt_bj = dt_utc.astimezone(timezone(timedelta(hours=8)))
+                                teacher_time_display = rollcall_dt_bj.strftime('%H:%M:%S')
                             except Exception:
                                 teacher_time_display = rollcall_time_str
+
+                        # Calculate real elapsed time from student_rollcalls.updated_at
+                        answer_ts = ''
+                        elapsed_sec = None
+                        if student_answered_at:
+                            try:
+                                ans_utc = datetime.fromisoformat(student_answered_at.replace('Z', '+00:00'))
+                                ans_bj = ans_utc.astimezone(timezone(timedelta(hours=8)))
+                                answer_ts = ans_bj.strftime('%H:%M:%S')
+                                if rollcall_dt_bj:
+                                    elapsed_sec = int((ans_bj - rollcall_dt_bj).total_seconds())
+                            except Exception:
+                                pass
+                        if not answer_ts:
+                            answer_ts = time.strftime('%H:%M:%S')
 
                         msg = f"📢 签到提醒\n课程：{cname}\n教师：{dept} {teacher}\n类型：{rtype}\n状态：{status}"
                         if number_code:
@@ -210,7 +230,7 @@ try:
                         if teacher_time_display:
                             msg += f"\n发起时间：{teacher_time_display}"
                         msg += f"\n签上时间：{answer_ts}"
-                        if status == 'on_call_fine':
+                        if elapsed_sec is not None and elapsed_sec >= 0:
                             msg += f"\n耗时：{elapsed_sec}s"
 
                         notify_target = os.environ.get(
