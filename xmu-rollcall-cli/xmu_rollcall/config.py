@@ -53,7 +53,10 @@ DEFAULT_ACCOUNT = {
         "number_delay_max": 30,
         "radar_delay_min": 0,
         "radar_delay_max": 0,
-        "manual_confirm": False
+        "manual_confirm": False,
+        "wait_before_answer_mode": "none",
+        "wait_before_answer_count_min": 0,
+        "wait_before_answer_count_max": 0,
     }
 }
 
@@ -69,6 +72,8 @@ def normalize_rollcall_settings(settings):
         ("number_delay_max", DEFAULT_ROLLCALL_SETTINGS["number_delay_max"]),
         ("radar_delay_min", DEFAULT_ROLLCALL_SETTINGS["radar_delay_min"]),
         ("radar_delay_max", DEFAULT_ROLLCALL_SETTINGS["radar_delay_max"]),
+        ("wait_before_answer_count_min", DEFAULT_ROLLCALL_SETTINGS["wait_before_answer_count_min"]),
+        ("wait_before_answer_count_max", DEFAULT_ROLLCALL_SETTINGS["wait_before_answer_count_max"]),
     ]
 
     for field, fallback in int_fields:
@@ -81,6 +86,13 @@ def normalize_rollcall_settings(settings):
         merged["number_delay_max"] = merged["number_delay_min"]
     if merged["radar_delay_max"] < merged["radar_delay_min"]:
         merged["radar_delay_max"] = merged["radar_delay_min"]
+    if merged["wait_before_answer_count_max"] < merged["wait_before_answer_count_min"]:
+        merged["wait_before_answer_count_max"] = merged["wait_before_answer_count_min"]
+
+    mode = merged.get("wait_before_answer_mode", "none")
+    if mode not in ("none", "fixed", "random"):
+        mode = "none"
+    merged["wait_before_answer_mode"] = mode
 
     merged["manual_confirm"] = bool(merged.get("manual_confirm", False))
     return merged

@@ -177,7 +177,15 @@ def config():
         click.echo(f"\n{Colors.BOLD}Rollcall safety settings:{Colors.ENDC}")
         click.echo(f"  Number rollcall delay: {settings['number_delay_min']} - {settings['number_delay_max']} seconds")
         click.echo(f"  Radar rollcall delay: {settings.get('radar_delay_min', 0)} - {settings.get('radar_delay_max', 0)} seconds")
-        click.echo(f"  Manual confirm before answering: {'yes' if settings['manual_confirm'] else 'no'}\n")
+        click.echo(f"  Manual confirm before answering: {'yes' if settings['manual_confirm'] else 'no'}")
+        mode = settings.get('wait_before_answer_mode', 'none')
+        if mode == 'fixed':
+            click.echo(f"  Wait for classmates: fixed {settings.get('wait_before_answer_count_min', 0)} students")
+        elif mode == 'random':
+            click.echo(f"  Wait for classmates: random {settings.get('wait_before_answer_count_min', 0)}-{settings.get('wait_before_answer_count_max', 0)} students")
+        else:
+            click.echo(f"  Wait for classmates: no wait")
+        click.echo()
 
         delay_min = click.prompt(
             f"{Colors.BOLD}Minimum delay before number rollcall answer (seconds){Colors.ENDC}",
@@ -199,6 +207,43 @@ def config():
             type=int,
             default=max(settings.get("radar_delay_max", 0), radar_delay_min)
         )
+
+        # Wait before answer strategy
+        click.echo(f"\n{Colors.BOLD}Wait for classmates before answering?{Colors.ENDC}")
+        click.echo(f"  1) No wait (answer immediately after delay)")
+        click.echo(f"  2) Fixed - wait until N students have answered")
+        click.echo(f"  3) Random - wait until a random number (0-N) of students have answered")
+        current_mode = settings.get('wait_before_answer_mode', 'none')
+        mode_default = {'none': '1', 'fixed': '2', 'random': '3'}.get(current_mode, '1')
+        wait_mode_choice = click.prompt(
+            f"{Colors.BOLD}Choice{Colors.ENDC}",
+            type=click.Choice(['1', '2', '3'], case_sensitive=False),
+            default=mode_default
+        )
+        mode_map = {'1': 'none', '2': 'fixed', '3': 'random'}
+        wait_mode = mode_map[wait_mode_choice]
+
+        wait_count_min = settings.get('wait_before_answer_count_min', 0)
+        wait_count_max = settings.get('wait_before_answer_count_max', 0)
+        if wait_mode == 'fixed':
+            wait_count_min = click.prompt(
+                f"{Colors.BOLD}How many classmates to wait for{Colors.ENDC}",
+                type=int,
+                default=wait_count_min
+            )
+            wait_count_max = wait_count_min
+        elif wait_mode == 'random':
+            wait_count_min = click.prompt(
+                f"{Colors.BOLD}Minimum classmates to wait for{Colors.ENDC}",
+                type=int,
+                default=wait_count_min
+            )
+            wait_count_max = click.prompt(
+                f"{Colors.BOLD}Maximum classmates to wait for{Colors.ENDC}",
+                type=int,
+                default=max(wait_count_max, wait_count_min)
+            )
+
         manual_confirm = click.confirm(
             f"{Colors.BOLD}Require manual confirmation before answering rollcalls?{Colors.ENDC}",
             default=settings["manual_confirm"]
@@ -209,7 +254,10 @@ def config():
             "number_delay_max": delay_max,
             "radar_delay_min": radar_delay_min,
             "radar_delay_max": radar_delay_max,
-            "manual_confirm": manual_confirm
+            "manual_confirm": manual_confirm,
+            "wait_before_answer_mode": wait_mode,
+            "wait_before_answer_count_min": wait_count_min,
+            "wait_before_answer_count_max": wait_count_max,
         })
         save_config(current_config)
         updated = get_rollcall_settings(account)
@@ -217,7 +265,15 @@ def config():
         click.echo(f"\n{Colors.OKGREEN}Settings saved.{Colors.ENDC}")
         click.echo(f"{Colors.GRAY}Number rollcall delay: {updated['number_delay_min']} - {updated['number_delay_max']} seconds{Colors.ENDC}")
         click.echo(f"{Colors.GRAY}Radar rollcall delay: {updated['radar_delay_min']} - {updated['radar_delay_max']} seconds{Colors.ENDC}")
-        click.echo(f"{Colors.GRAY}Manual confirm: {'yes' if updated['manual_confirm'] else 'no'}{Colors.ENDC}\n")
+        click.echo(f"{Colors.GRAY}Manual confirm: {'yes' if updated['manual_confirm'] else 'no'}{Colors.ENDC}")
+        wmode = updated.get('wait_before_answer_mode', 'none')
+        if wmode == 'fixed':
+            click.echo(f"{Colors.GRAY}Wait for classmates: fixed {updated.get('wait_before_answer_count_min', 0)} students{Colors.ENDC}")
+        elif wmode == 'random':
+            click.echo(f"{Colors.GRAY}Wait for classmates: random {updated.get('wait_before_answer_count_min', 0)}-{updated.get('wait_before_answer_count_max', 0)} students{Colors.ENDC}")
+        else:
+            click.echo(f"{Colors.GRAY}Wait for classmates: no wait{Colors.ENDC}")
+        click.echo()
 
     def configure_notifications():
         accounts = get_all_accounts(current_config)

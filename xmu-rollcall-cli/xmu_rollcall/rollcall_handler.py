@@ -3,6 +3,51 @@ import random
 from .config import get_rollcall_settings
 from .verify import send_code, send_radar
 
+WAIT_POLL_INTERVAL = 3
+
+def _fetch_signed_count(session, rollcall_id):
+    """查询当前签到已签人数。"""
+    try:
+        from .verify import base_url
+        resp = session.get(
+            f"{base_url}/api/rollcall/{rollcall_id}/student_rollcalls",
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            students = resp.json().get("student_rollcalls", [])
+            return sum(1 for s in students if s.get("updated_at"))
+    except Exception:
+        pass
+    return None
+
+def wait_for_classmates(session, rollcall_id, settings):
+    """根据配置等待足够多的同学签到后再签。"""
+    mode = settings.get("wait_before_answer_mode", "none")
+    if mode == "none":
+        return
+
+    if mode == "fixed":
+        target = settings.get("wait_before_answer_count_min", 0)
+    elif mode == "random":
+        lo = settings.get("wait_before_answer_count_min", 0)
+        hi = settings.get("wait_before_answer_count_max", 0)
+        target = random.randint(lo, hi) if hi > lo else lo
+    else:
+        return
+
+    if target <= 0:
+        return
+
+    print(f"Waiting for {target} classmate(s) to answer before signing...")
+    while True:
+        count = _fetch_signed_count(session, rollcall_id)
+        if count is not None:
+            print(f"\r  Signed: {count}/{target}", end="", flush=True)
+            if count >= target:
+                print()
+                return
+        time.sleep(WAIT_POLL_INTERVAL)
+
 def process_rollcalls(data, session, account=None):
     """处理签到数据"""
     data_empty = {'rollcalls': []}
@@ -92,6 +137,7 @@ def handle_rollcalls(data, session, account=None):
 
             if (rollcalls[i]['status'] == 'absent') & (rollcalls[i]['is_number']) & (not rollcalls[i]['is_radar']):
                 wait_before_number_answer(settings)
+                wait_for_classmates(session, rollcalls[i]['rollcall_id'], settings)
                 if send_code(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
@@ -101,6 +147,7 @@ def handle_rollcalls(data, session, account=None):
                 answer_status[i] = True
             elif rollcalls[i]['is_radar']:
                 wait_before_radar_answer(settings)
+                wait_for_classmates(session, rollcalls[i]['rollcall_id'], settings)
                 if send_radar(session, rollcalls[i]['rollcall_id']):
                     answer_status[i] = True
                 else:
