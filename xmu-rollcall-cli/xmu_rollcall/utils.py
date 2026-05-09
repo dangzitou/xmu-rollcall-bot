@@ -2,6 +2,36 @@ import os
 import json
 import requests
 
+import time as _time
+
+def retry_request(fn, max_attempts=3, delay=2, backoff=2, label="request"):
+    """Retry a callable with exponential backoff.
+
+    Args:
+        fn: Zero-arg callable that performs the request and returns a response.
+        max_attempts: Maximum number of attempts (default 3).
+        delay: Initial delay between retries in seconds (default 2).
+        backoff: Multiplier applied to delay after each retry (default 2).
+        label: Human-readable label for log messages.
+
+    Returns:
+        The return value of fn on success.
+
+    Raises:
+        The last exception after all attempts exhausted.
+    """
+    last_exc = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return fn()
+        except Exception as e:
+            last_exc = e
+            if attempt < max_attempts:
+                _time.sleep(delay)
+                delay *= backoff
+    raise last_exc
+
+
 
 def supports_interactive_terminal() -> bool:
     """Return True when stdout/stderr are attached to a real terminal."""
