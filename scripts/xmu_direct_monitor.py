@@ -73,10 +73,11 @@ session = None
 if os.path.exists(cp):
     import requests
     from xmu_rollcall.utils import load_session, verify_session
+    from xmu_rollcall.utils import retry_request
     try:
         s = requests.Session()
         if load_session(s, cp):
-            profile = verify_session(s)
+            profile = retry_request(lambda: verify_session(s), max_attempts=3, delay=3, label="session_restore")
             if profile:
                 session = s
                 p("Session restored")
@@ -88,7 +89,10 @@ if not session:
         from xmulogin import xmulogin as login_fn
         p("Logging in...")
         t0 = time.time()
-        session = login_fn(type=3, username=acc['username'], password=acc['password'])
+        session = retry_request(
+            lambda: login_fn(type=3, username=acc['username'], password=acc['password']),
+            max_attempts=3, delay=5, label="login",
+        )
         if session:
             from xmu_rollcall.utils import save_session
             save_session(session, cp)
