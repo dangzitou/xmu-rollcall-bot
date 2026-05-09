@@ -326,7 +326,7 @@ def start_monitor(account):
                 elapsed = int(current_time - start_time)
                 if elapsed > _last_query_time:
                     _last_query_time = elapsed
-                    data = session.get(rollcalls_url, headers=headers).json()
+                    data = session.get(rollcalls_url, headers=headers, timeout=30).json()
                     query_count += 1
 
                     local_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())

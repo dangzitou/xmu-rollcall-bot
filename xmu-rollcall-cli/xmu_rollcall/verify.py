@@ -50,7 +50,7 @@ def send_code(in_session, rollcall_id):
     t00 = time.time()
     request_headers = in_session.headers
     try:
-        code_response = in_session.get(code_url, headers=request_headers)
+        code_response = in_session.get(code_url, headers=request_headers, timeout=15)
         if code_response.status_code != 200:
             t01 = time.time()
             print(f"Failed to get number code. Status: {code_response.status_code}\nTime: {t01 - t00:.2f} s.")
@@ -76,7 +76,7 @@ def send_code(in_session, rollcall_id):
         "numberCode": number_code
     }
     try:
-        response = in_session.put(answer_url, json=payload, headers=request_headers)
+        response = in_session.put(answer_url, json=payload, headers=request_headers, timeout=15)
         if response.status_code == 200:
             print("Number code rollcall answered successfully.\nNumber code: ", number_code)
             time.sleep(5)
@@ -109,13 +109,13 @@ def send_radar(in_session, rollcall_id):
             "speed": None
         }
 
-    res_1 = in_session.put(url, json=payload(lat_1, lon_1), headers=headers)
+    res_1 = in_session.put(url, json=payload(lat_1, lon_1), headers=headers, timeout=15)
     data_1 = res_1.json()
 
     if res_1.status_code == 200:
         return True
 
-    res_2 = in_session.put(url, json=payload(lat_2, lon_2), headers=headers)
+    res_2 = in_session.put(url, json=payload(lat_2, lon_2), headers=headers, timeout=15)
     data_2 = res_2.json()
 
     if res_2.status_code == 200:
@@ -178,12 +178,12 @@ def send_radar(in_session, rollcall_id):
     payload_1 = payload(sol_x_1, sol_y_1)
     payload_2 = payload(sol_x_2, sol_y_2)
 
-    res_3 = in_session.put(url, json=payload_1, headers=headers)
+    res_3 = in_session.put(url, json=payload_1, headers=headers, timeout=15)
     if res_3.status_code == 200:
         return True
     else:
         print(res_3.json())
-        res_4 = in_session.put(url, json=payload_2, headers=headers)
+        res_4 = in_session.put(url, json=payload_2, headers=headers, timeout=15)
         if res_4.status_code == 200:
             return True
 

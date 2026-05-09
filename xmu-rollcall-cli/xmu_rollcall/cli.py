@@ -83,7 +83,7 @@ def config():
                 # 获取用户姓名
                 click.echo(f"{Colors.OKCYAN}Fetching user profile...{Colors.ENDC}")
                 try:
-                    profile = session.get(f"{base_url}/api/profile", headers=headers).json()
+                    profile = session.get(f"{base_url}/api/profile", headers=headers, timeout=15).json()
                     name = profile.get("name", "")
                     click.echo(f"{Colors.OKGREEN}✓ Welcome, {name}!{Colors.ENDC}")
                 except Exception:
