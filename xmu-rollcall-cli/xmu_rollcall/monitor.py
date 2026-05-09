@@ -10,7 +10,7 @@ from .proxy_guard import disable_system_proxies
 disable_system_proxies()
 
 from xmulogin import xmulogin
-from .utils import clear_screen, save_session, load_session, verify_session, supports_interactive_terminal
+from .utils import clear_screen, save_session, load_session, verify_session, supports_interactive_terminal, retry_request
 from .rollcall_handler import process_rollcalls
 from .config import get_cookies_path
 
@@ -326,7 +326,10 @@ def start_monitor(account):
                 elapsed = int(current_time - start_time)
                 if elapsed > _last_query_time:
                     _last_query_time = elapsed
-                    data = session.get(rollcalls_url, headers=headers, timeout=30).json()
+                    data = retry_request(
+                        lambda: session.get(rollcalls_url, headers=headers, timeout=30),
+                        max_attempts=3, delay=2, label="poll",
+                    ).json()
                     query_count += 1
 
                     local_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())

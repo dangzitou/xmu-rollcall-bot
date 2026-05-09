@@ -131,7 +131,10 @@ try:
         elapsed = int(current_time - start_time)
         
         try:
-            resp = session.get(rollcalls_url, headers=headers, timeout=30)
+            resp = retry_request(
+                lambda: session.get(rollcalls_url, headers=headers, timeout=30),
+                max_attempts=3, delay=2, label="poll",
+            )
             resp.raise_for_status()
             data = resp.json()
             query_count += 1

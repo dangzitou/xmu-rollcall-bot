@@ -2,6 +2,7 @@ import uuid
 import time
 import math
 import requests
+from .utils import retry_request
 
 base_url = "https://lnt.xmu.edu.cn"
 headers = {
@@ -50,7 +51,10 @@ def send_code(in_session, rollcall_id):
     t00 = time.time()
     request_headers = in_session.headers
     try:
-        code_response = in_session.get(code_url, headers=request_headers, timeout=15)
+        code_response = retry_request(
+            lambda: in_session.get(code_url, headers=request_headers, timeout=15),
+            max_attempts=3, delay=2, label="get_number_code",
+        )
         if code_response.status_code != 200:
             t01 = time.time()
             print(f"Failed to get number code. Status: {code_response.status_code}\nTime: {t01 - t00:.2f} s.")
@@ -76,7 +80,10 @@ def send_code(in_session, rollcall_id):
         "numberCode": number_code
     }
     try:
-        response = in_session.put(answer_url, json=payload, headers=request_headers, timeout=15)
+        response = retry_request(
+            lambda: in_session.put(answer_url, json=payload, headers=request_headers, timeout=15),
+            max_attempts=3, delay=2, label="answer_number",
+        )
         if response.status_code == 200:
             print("Number code rollcall answered successfully.\nNumber code: ", number_code)
             time.sleep(5)
@@ -109,13 +116,19 @@ def send_radar(in_session, rollcall_id):
             "speed": None
         }
 
-    res_1 = in_session.put(url, json=payload(lat_1, lon_1), headers=headers, timeout=15)
+    res_1 = retry_request(
+        lambda: in_session.put(url, json=payload(lat_1, lon_1), headers=headers, timeout=15),
+        max_attempts=3, delay=2, label="radar_1",
+    )
     data_1 = res_1.json()
 
     if res_1.status_code == 200:
         return True
 
-    res_2 = in_session.put(url, json=payload(lat_2, lon_2), headers=headers, timeout=15)
+    res_2 = retry_request(
+        lambda: in_session.put(url, json=payload(lat_2, lon_2), headers=headers, timeout=15),
+        max_attempts=3, delay=2, label="radar_2",
+    )
     data_2 = res_2.json()
 
     if res_2.status_code == 200:
