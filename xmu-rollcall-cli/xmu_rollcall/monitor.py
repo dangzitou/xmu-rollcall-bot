@@ -11,23 +11,12 @@ disable_system_proxies()
 
 from xmulogin import xmulogin
 from .utils import clear_screen, save_session, load_session, verify_session, supports_interactive_terminal, retry_request
+from .utils import base_url, headers
 from .rollcall_handler import process_rollcalls
 from .config import get_cookies_path
 
-base_url = "https://lnt.xmu.edu.cn"
 interval = 1
-headers = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.9",
-    "Referer": "https://ids.xmu.edu.cn/authserver/login",
-}
 
-# ANSI Color codes
 class Colors:
     __slots__ = ()
     HEADER = '\033[95m'
@@ -56,7 +45,7 @@ def get_terminal_width():
     """获取终端宽度"""
     try:
         return shutil.get_terminal_size().columns
-    except:
+    except Exception:
         return 80
 
 _ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
