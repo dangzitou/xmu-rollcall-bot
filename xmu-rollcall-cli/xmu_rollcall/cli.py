@@ -29,6 +29,7 @@ class Colors:
     GRAY = '\033[90m'
 
 @click.group(invoke_without_command=True)
+@click.version_option(version=__version__, prog_name="xmu")
 @click.pass_context
 def cli(ctx):
     if ctx.invoked_subcommand is None:
@@ -39,6 +40,7 @@ def cli(ctx):
         click.echo(f"  xmu start     Start monitoring rollcalls")
         click.echo(f"  xmu refresh   Refresh the login status")
         click.echo(f"  xmu --help    Show this message")
+        click.echo(f"  xmu --version Show version")
         click.echo(f"\nNotification target defaults to env var: {DEFAULT_NOTIFICATION_TARGET_ENV}")
 
 @cli.command(help="配置账号、签到安全设置与通知投递")
