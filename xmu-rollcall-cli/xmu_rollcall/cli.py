@@ -14,19 +14,8 @@ from .config import (
     set_notification_settings,
 )
 from .notifications_config import DEFAULT_NOTIFICATION_TARGET_ENV
+from .colors import Colors
 from .monitor import start_monitor, base_url, headers
-
-# ANSI Color codes
-class Colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    GRAY = '\033[90m'
 
 @click.group(invoke_without_command=True)
 @click.version_option(version=__version__, prog_name="xmu")
