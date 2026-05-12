@@ -26,7 +26,7 @@ if ! python -c 'import xmu_rollcall' >/dev/null 2>&1; then
   python -m pip install -e .
 fi
 
-nohup python -m xmu_rollcall.cli start >>"$LOG_FILE" 2>&1 &
+nohup python -u -m xmu_rollcall.cli start >>"$LOG_FILE" 2>&1 &
 echo $! > "$PID_FILE"
 echo "Started xmu-rollcall monitor in background"
 echo "PID: $(cat "$PID_FILE")"
