@@ -2,6 +2,7 @@ import time
 import random
 from .config import get_rollcall_settings
 from .verify import send_code, send_radar
+from .events import notify_new_rollcall
 
 WAIT_POLL_INTERVAL = 3
 
@@ -134,6 +135,13 @@ def handle_rollcalls(data, session, account=None):
             else:
                 temp_str = "QRcode rollcall"
             print(f"Rollcall type: {temp_str}\n")
+
+            # Send notification
+            if account:
+                try:
+                    notify_new_rollcall(account, rollcalls[i])
+                except Exception as e:
+                    print(f"Notification error: {e}")
 
             if (rollcalls[i]['status'] == 'absent') & (rollcalls[i]['is_number']) & (not rollcalls[i]['is_radar']):
                 wait_before_number_answer(settings)
